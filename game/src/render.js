@@ -1,7 +1,7 @@
-// Top-level frame composer for Lantern & Ladle: scales the 1280x720 playfield,
-// draws kitchen world, particles, HUD, recipe book, upgrade shop, title, and summary screens.
+// Top-level frame composer for Sesame & Flame: scales the 1280x720 playfield,
+// draws kitchen world, particles, HUD, 10-dish recipe codex, upgrade shop, title, and summary screens.
 
-import { FIELD, FONT_MONO, FONT_UI, HUD_BAR, PALETTE, SHIFTS, TICKET_RAIL, UPGRADE_CATALOG } from './config.js';
+import { FIELD, FONT_MONO, FONT_UI, HUD_BAR, PALETTE, SHIFTS, UPGRADE_CATALOG } from './config.js';
 import { RECIPES, ITEM_METADATA } from './recipes.js';
 import { drawDishBowl, drawIngredientIcon } from './artFood.js';
 import { drawChef, drawKitchenBackdrop, drawPantryCounter, drawStations, drawTicketRail } from './artKitchen.js';
@@ -73,12 +73,12 @@ export function createRenderer(canvas) {
     ctx.textAlign = 'left';
     ctx.fillStyle = PALETTE.textLight;
     ctx.font = `900 17px ${FONT_UI}`;
-    ctx.fillText('LANTERN & LADLE', 58, 24);
+    ctx.fillText('SESAME & FLAME', 58, 24);
 
     const shiftCfg = SHIFTS[Math.min(state.shiftIndex, SHIFTS.length - 1)];
     ctx.fillStyle = '#ffd773';
     ctx.font = `700 11px ${FONT_UI}`;
-    ctx.fillText(`SHIFT ${shiftCfg.shift} · ${shiftCfg.name.toUpperCase()}`, 58, 41);
+    ctx.fillText(`SHIFT ${shiftCfg.shift}/${SHIFTS.length} · ${shiftCfg.name.toUpperCase()}`, 58, 41);
 
     // Score, Goal, Combo, Served pills
     const pills = [
@@ -195,13 +195,13 @@ export function createRenderer(canvas) {
   }
 
   function drawRecipeBookOverlay() {
-    ctx.fillStyle = 'rgba(14, 10, 9, 0.78)';
+    ctx.fillStyle = 'rgba(14, 10, 9, 0.82)';
     ctx.fillRect(0, HUD_BAR.height, FIELD.width, FIELD.height - HUD_BAR.height);
 
-    const w = 940;
-    const h = 470;
+    const w = 1040;
+    const h = 588;
     const x = (FIELD.width - w) / 2;
-    const y = 126;
+    const y = 78;
 
     ctx.fillStyle = '#241b17';
     roundRect(ctx, x, y, w, h, 14);
@@ -212,47 +212,47 @@ export function createRenderer(canvas) {
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffd773';
-    ctx.font = `900 24px ${FONT_UI}`;
-    ctx.fillText('BISTRO RECIPE BOOK  (Press [H] or Click to Close)', FIELD.width / 2, y + 40);
+    ctx.font = `900 22px ${FONT_UI}`;
+    ctx.fillText('IZAKAYA RECIPE CODEX · 10 SIGNATURE BOWLS  ([H] or Click to Close)', FIELD.width / 2, y + 36);
 
     for (let i = 0; i < RECIPES.length; i += 1) {
       const r = RECIPES[i];
       const col = i % 2;
       const row = Math.floor(i / 2);
-      const rx = x + 28 + col * 448;
-      const ry = y + 66 + row * 124;
+      const rx = x + 24 + col * 500;
+      const ry = y + 54 + row * 102;
 
       ctx.fillStyle = '#332721';
-      roundRect(ctx, rx, ry, 424, 108, 10);
+      roundRect(ctx, rx, ry, 488, 92, 9);
       ctx.fill();
       ctx.strokeStyle = '#5c4639';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      drawDishBowl(ctx, r.id, rx + 54, ry + 54, 34);
+      drawDishBowl(ctx, r.id, rx + 46, ry + 46, 31);
 
       ctx.textAlign = 'left';
       ctx.fillStyle = '#fdf7ec';
-      ctx.font = `800 16px ${FONT_UI}`;
-      ctx.fillText(`${r.name}`, rx + 104, ry + 32);
+      ctx.font = `800 15px ${FONT_UI}`;
+      ctx.fillText(r.name, rx + 92, ry + 28);
 
       ctx.textAlign = 'right';
       ctx.fillStyle = '#4cd98c';
-      ctx.font = `800 14px ${FONT_MONO}`;
-      ctx.fillText(`$${r.basePay} + $${r.tipBonus} tip`, rx + 408, ry + 32);
+      ctx.font = `800 13px ${FONT_MONO}`;
+      ctx.fillText(`$${r.basePay} + $${r.tipBonus} tip`, rx + 474, ry + 28);
 
-      let px = rx + 104;
+      let px = rx + 92;
       for (const part of r.parts) {
         ctx.fillStyle = '#221a16';
-        roundRect(ctx, px, ry + 48, 72, 46, 6);
+        roundRect(ctx, px, ry + 40, 88, 42, 6);
         ctx.fill();
-        drawIngredientIcon(ctx, part, px + 36, ry + 66, 0.7);
+        drawIngredientIcon(ctx, part, px + 44, ry + 57, 0.65);
         ctx.textAlign = 'center';
         ctx.fillStyle = '#d9cbb8';
         ctx.font = `600 9px ${FONT_UI}`;
         const label = ITEM_METADATA[part]?.label.split(' ').pop() ?? part;
-        ctx.fillText(label, px + 36, ry + 89);
-        px += 77;
+        ctx.fillText(label, px + 44, ry + 78);
+        px += 94;
       }
     }
   }
@@ -261,8 +261,8 @@ export function createRenderer(canvas) {
     ctx.fillStyle = 'rgba(15, 11, 10, 0.62)';
     ctx.fillRect(0, 0, FIELD.width, FIELD.height);
 
-    const w = 660;
-    const h = 360;
+    const w = 680;
+    const h = 380;
     const x = (FIELD.width - w) / 2;
     const y = (FIELD.height - h) / 2;
 
@@ -273,32 +273,32 @@ export function createRenderer(canvas) {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    drawDishBowl(ctx, 'velvet_miso_ramen', x + 115, y + 110, 52);
-    drawDishBowl(ctx, 'dragon_shrimp_noodles', x + w - 115, y + 110, 52);
+    drawDishBowl(ctx, 'velvet_miso_ramen', x + 110, y + 108, 52);
+    drawDishBowl(ctx, 'surf_and_turf_don', x + w - 110, y + 108, 52);
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffd773';
     ctx.font = `900 40px ${FONT_UI}`;
-    ctx.fillText('LANTERN & LADLE', FIELD.width / 2, y + 92);
+    ctx.fillText('SESAME & FLAME', FIELD.width / 2, y + 90);
 
     ctx.fillStyle = '#f5e7cf';
     ctx.font = `600 16px ${FONT_UI}`;
-    ctx.fillText('Midnight Izakaya & Wok Bistro', FIELD.width / 2, y + 124);
+    ctx.fillText('Midnight Izakaya & Wok Bistro · 10 Signature Dishes', FIELD.width / 2, y + 122);
 
     const lines = [
-      '1. Grab ingredients [1-8] or click pantry trays.',
-      '2. Prep on Chop Block [C], Kettle [B], and Ember Wok [F].',
+      '1. Grab ingredients [1-8] or click pantry trays; Side Tray [Q] holds 1 item.',
+      '2. Prep on Chop Block [C], Kettle [B], and Ember Wok [F] for Wok Hei.',
       '3. Layer bowls at Assembly [Space], then ring Pass Bell [Enter]!',
-      `Best Service Earnings: $${state.bestScore}`,
+      `Move faster with [Shift] · Best Service Earnings: $${state.bestScore}`,
     ];
-    ctx.font = `600 15px ${FONT_UI}`;
+    ctx.font = `600 14px ${FONT_UI}`;
     ctx.fillStyle = '#d9cbb8';
     lines.forEach((line, idx) => {
       ctx.fillText(line, FIELD.width / 2, y + 178 + idx * 28);
     });
 
     ctx.fillStyle = '#c95335';
-    roundRect(ctx, FIELD.width / 2 - 140, y + h - 72, 280, 48, 10);
+    roundRect(ctx, FIELD.width / 2 - 145, y + h - 72, 290, 48, 10);
     ctx.fill();
     ctx.strokeStyle = '#ffd773';
     ctx.lineWidth = 2;
@@ -310,13 +310,13 @@ export function createRenderer(canvas) {
   }
 
   function drawUpgradeOverlay(state, hoveredUpgradeId) {
-    ctx.fillStyle = 'rgba(15, 11, 10, 0.74)';
+    ctx.fillStyle = 'rgba(15, 11, 10, 0.72)';
     ctx.fillRect(0, HUD_BAR.height, FIELD.width, FIELD.height - HUD_BAR.height);
 
-    const w = 880;
-    const h = 440;
+    const w = 920;
+    const h = 540;
     const x = (FIELD.width - w) / 2;
-    const y = 136;
+    const y = 96;
 
     ctx.fillStyle = '#241b17';
     roundRect(ctx, x, y, w, h, 14);
@@ -328,26 +328,26 @@ export function createRenderer(canvas) {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#72e6a4';
     ctx.font = `900 28px ${FONT_UI}`;
-    ctx.fillText(`SHIFT ${state.shiftIndex + 1} COMPLETE!  EARNINGS: $${state.score}`, FIELD.width / 2, y + 48);
+    ctx.fillText(`SHIFT ${state.shiftIndex + 1} COMPLETE!  EARNINGS: $${state.score}`, FIELD.width / 2, y + 46);
 
     ctx.fillStyle = '#d9cbb8';
     ctx.font = `600 15px ${FONT_UI}`;
     ctx.fillText(
-      `Served: ${state.servedCount} dishes   ·   Max Combo: x${state.maxCombo}   ·   Invest tips before the next rush!`,
+      `Served: ${state.servedCount} dishes   ·   Max Combo: x${state.maxCombo}   ·   Invest tips in kitchen gear!`,
       FIELD.width / 2,
-      y + 78,
+      y + 74,
     );
 
     for (let i = 0; i < UPGRADE_CATALOG.length; i += 1) {
       const up = UPGRADE_CATALOG[i];
-      const ux = x + 30 + (i % 2) * 416;
-      const uy = y + 104 + Math.floor(i / 2) * 116;
+      const ux = x + 34 + (i % 2) * 432;
+      const uy = y + 96 + Math.floor(i / 2) * 108;
       const owned = state.upgrades[up.id];
       const canAfford = state.score >= up.cost;
       const isHover = hoveredUpgradeId === up.id;
 
       ctx.fillStyle = owned ? '#1d3b2b' : isHover && canAfford ? '#433329' : '#322620';
-      roundRect(ctx, ux, uy, 398, 98, 10);
+      roundRect(ctx, ux, uy, 420, 94, 10);
       ctx.fill();
       ctx.strokeStyle = owned ? '#4cd98c' : isHover && canAfford ? '#ffd773' : '#5e493d';
       ctx.lineWidth = 2;
@@ -356,7 +356,7 @@ export function createRenderer(canvas) {
       ctx.textAlign = 'left';
       ctx.fillStyle = '#fff5e0';
       ctx.font = `800 16px ${FONT_UI}`;
-      ctx.fillText(`[${i + 1}] ${up.name}`, ux + 16, uy + 32);
+      ctx.fillText(`[${i + 1}] ${up.name}`, ux + 16, uy + 31);
 
       ctx.fillStyle = '#cbbba8';
       ctx.font = `600 13px ${FONT_UI}`;
@@ -365,11 +365,35 @@ export function createRenderer(canvas) {
       ctx.textAlign = 'right';
       ctx.fillStyle = owned ? '#72e6a4' : canAfford ? '#ffd773' : '#8a7a6c';
       ctx.font = `900 16px ${FONT_MONO}`;
-      ctx.fillText(owned ? 'EQUIPPED' : `$${up.cost}`, ux + 382, uy + 32);
+      ctx.fillText(owned ? 'EQUIPPED' : `$${up.cost}`, ux + 404, uy + 31);
     }
 
+    // Showcase the 4 Shift-2+ signature chef specials unlocked for the next rush
+    ctx.fillStyle = '#1b1411';
+    roundRect(ctx, x + 34, y + 322, w - 68, 128, 10);
+    ctx.fill();
+    ctx.strokeStyle = '#574337';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffd773';
+    ctx.font = `800 13px ${FONT_UI}`;
+    ctx.fillText('NEXT SHIFT MENU UNLOCKED (10 TOTAL COMBINABLE BOWLS)', FIELD.width / 2, y + 345);
+
+    const previewDishes = RECIPES.slice(6, 10);
+    previewDishes.forEach((dish, idx) => {
+      const dx = x + 135 + idx * 215;
+      const dy = y + 392;
+      drawDishBowl(ctx, dish.id, dx, dy, 28);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fdf7ec';
+      ctx.font = `700 12px ${FONT_UI}`;
+      ctx.fillText(dish.shortName, dx, dy + 44);
+    });
+
     ctx.fillStyle = '#c95335';
-    roundRect(ctx, FIELD.width / 2 - 165, y + h - 72, 330, 48, 10);
+    roundRect(ctx, FIELD.width / 2 - 170, y + h - 68, 340, 48, 10);
     ctx.fill();
     ctx.strokeStyle = '#ffd773';
     ctx.lineWidth = 2;
@@ -378,7 +402,7 @@ export function createRenderer(canvas) {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#fffaf0';
     ctx.font = `900 18px ${FONT_UI}`;
-    ctx.fillText(`START SHIFT ${state.shiftIndex + 2}  [SPACE / ENTER]`, FIELD.width / 2, y + h - 41);
+    ctx.fillText(`START SHIFT ${state.shiftIndex + 2}  [SPACE / ENTER]`, FIELD.width / 2, y + h - 37);
   }
 
   function drawPauseOrOverOverlay(state) {

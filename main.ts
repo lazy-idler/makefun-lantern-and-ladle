@@ -1,4 +1,4 @@
-// Entry point for Lantern & Ladle (Midnight Wok Bistro), a static offline HTML5 canvas cooking game.
+// Entry point for Sesame & Flame (Midnight Izakaya), a static offline HTML5 canvas cooking game.
 // Copies game/ and screenshots/ to the grader output directory and writes dossier.json via vendor/makefun-game.ts.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.

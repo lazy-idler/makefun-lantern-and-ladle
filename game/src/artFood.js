@@ -371,8 +371,37 @@ export function drawDishBowl(ctx, recipeId, x, y, r, partsOverride = null) {
     drawIngredientIcon(ctx, 'soft_egg', r * 0.32, r * 0.24, r / 28);
   }
 
-  // Finished chopsticks + rim highlight when completed
+  // Finished chopsticks, roasted nori strip, narutomaki fishcake, and scallion garnish when completed
   if (!partsOverride || (recipe && parts.length === recipe.parts.length)) {
+    // Roasted nori seaweed sheet tucked along top-left rim
+    ctx.save();
+    ctx.translate(-r * 0.44, -r * 0.42);
+    ctx.rotate(-0.42);
+    ctx.fillStyle = '#1d2b22';
+    ctx.strokeStyle = '#0e1712';
+    ctx.lineWidth = 1.2;
+    drawRoundedRect(ctx, -r * 0.24, -r * 0.14, r * 0.48, r * 0.28, 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Narutomaki swirl slice if ramen bowl
+    if (recipe?.bowlStyle === 'ramen') {
+      ctx.fillStyle = '#fff9f0';
+      ctx.strokeStyle = '#d1c2ab';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(r * 0.08, -r * 0.36, r * 0.17, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = '#f0718d';
+      ctx.lineWidth = Math.max(1.4, r * 0.045);
+      ctx.beginPath();
+      ctx.arc(r * 0.08, -r * 0.36, r * 0.09, 0, Math.PI * 1.6);
+      ctx.stroke();
+    }
+
+    // Bamboo chopsticks across upper rim
     ctx.strokeStyle = '#6b3e22';
     ctx.lineWidth = Math.max(2, r * 0.09);
     ctx.lineCap = 'round';
@@ -383,7 +412,7 @@ export function drawDishBowl(ctx, recipeId, x, y, r, partsOverride = null) {
     ctx.lineTo(r * 0.88, -r * 0.74);
     ctx.stroke();
 
-    // Scallion garnish dots
+    // Scallion garnish & sesame dots
     ctx.fillStyle = '#4cd98c';
     for (const [sx, sy] of [[0, -0.05], [0.12, 0.14], [-0.08, 0.16]]) {
       ctx.beginPath();

@@ -1,4 +1,4 @@
-// Entry loop for Lantern & Ladle: boots world state, audio synthesizer,
+// Entry loop for Sesame & Flame: boots world state, audio synthesizer,
 // input controller, renderer, fixed-timestep update loop, and ?shot harness.
 
 import { BEST_STORAGE_KEY, MAX_FRAME, STEP } from './config.js';
@@ -14,6 +14,7 @@ import {
   interactKettle,
   interactNearestStation,
   interactServicePass,
+  interactSideTray,
   interactWashSink,
   interactWok,
 } from './kitchenActions.js';
@@ -98,6 +99,7 @@ function runInteractiveGame() {
     else if (stationKey === 'wok') interactWok(world, particles, audio);
     else if (stationKey === 'plate') interactAssemblyBoard(world, particles, audio);
     else if (stationKey === 'pass') interactServicePass(world, particles, audio);
+    else if (stationKey === 'hold') interactSideTray(world, particles, audio);
     else if (stationKey === 'trash') interactWashSink(world, particles, audio);
   }
 
@@ -192,8 +194,9 @@ function runInteractiveGame() {
     if (world.state.screen === SCREEN_PLAY && !world.state.showRecipeBook) {
       accumulator += rawDelta;
       const moveDir = input.direction();
+      const dash = input.isDashing();
       while (accumulator >= STEP) {
-        const res = world.step(STEP, moveDir, particles, audio);
+        const res = world.step(STEP, moveDir, particles, audio, dash);
         particles.step(STEP);
         accumulator -= STEP;
         if (res.shiftEnded) {
@@ -220,7 +223,7 @@ function runInteractiveGame() {
     }
   });
 
-  announce('Lantern and Ladle ready. Press Space or click Open Kitchen to play.');
+  announce('Sesame and Flame ready. Press Space or click Open Kitchen to play.');
   requestAnimationFrame(frame);
 }
 

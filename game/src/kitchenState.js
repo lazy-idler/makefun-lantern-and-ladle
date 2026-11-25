@@ -1,6 +1,6 @@
-// Pure simulation state and fixed-timestep kitchen engine for Lantern & Ladle.
-// Tracks active customer tickets, station timers, chef movement, combos, upgrades,
-// and shift progression with zero browser or DOM coupling.
+// Pure simulation state and fixed-timestep kitchen engine for Sesame & Flame.
+// Tracks active customer & VIP critic tickets, station timers, side prep tray,
+// chef movement, combos, upgrades, and 5-shift progression with zero DOM coupling.
 
 import { CHEF_CONFIG, COOKING_TIMES, SHIFTS, STATIONS } from './config.js';
 import { RECIPES } from './recipes.js';
@@ -11,7 +11,7 @@ export const SCREEN_PAUSED = 'paused';
 export const SCREEN_UPGRADE = 'upgrade';
 export const SCREEN_OVER = 'over';
 
-const TABLE_LABELS = ['Booth 1', 'Bar 2', 'Booth 3', 'Counter 4', 'Lantern 5', 'VIP 6'];
+const TABLE_LABELS = ['Booth 1', 'Bar 2', 'Booth 3', 'Counter 4', 'Lantern 5', 'Patio 6'];
 
 export function createKitchenState(random) {
   let nextOrderSeq = 101;
@@ -76,8 +76,11 @@ export function createKitchenState(random) {
         completedRecipeId: null,
       },
       pass: {
-        slots: [null, null], // each slot: { recipeId, perfectWok } or null
+        slots: [null, null], // each slot: { recipeId } or null
         bellRing: 0,
+      },
+      hold: {
+        item: null,
       },
     },
 
@@ -97,7 +100,7 @@ export function createKitchenState(random) {
   }
 
   function clearStations() {
-    const { chop, kettle, wok, plate, pass } = state.stations;
+    const { chop, kettle, wok, plate, pass, hold } = state.stations;
     chop.item = null;
     chop.hits = 0;
     chop.hitsRequired = state.upgrades.cleaver ? 2 : COOKING_TIMES.chopHitsRequired;
@@ -120,20 +123,24 @@ export function createKitchenState(random) {
     plate.completedRecipeId = null;
     pass.slots = [null, null];
     pass.bellRing = 0;
+    hold.item = null;
   }
 
   function spawnOrder() {
     const cfg = currentShiftConfig();
     if (state.orders.length >= cfg.maxActiveOrders) return null;
-    const pool = state.shiftIndex === 0 ? RECIPES.slice(0, 4) : RECIPES;
+    const pool = state.shiftIndex === 0 ? RECIPES.slice(0, 6) : RECIPES;
     const recipe = pool[Math.floor(random() * pool.length)];
+    const hasVipAlready = state.orders.some((o) => o.isVip);
+    const isVip = !hasVipAlready && nextOrderSeq % 4 === 1;
     const extraWait = state.upgrades.heatlamp ? 1.2 : 1.0;
-    const patience = (cfg.basePatienceSec + Math.floor(random() * 6)) * extraWait;
-    const tableLabel = TABLE_LABELS[(nextOrderSeq + Math.floor(random() * 2)) % TABLE_LABELS.length];
+    const patience = (cfg.basePatienceSec + Math.floor(random() * 6)) * extraWait * (isVip ? 0.85 : 1.0);
+    const tableLabel = isVip ? 'VIP CRITIC' : TABLE_LABELS[(nextOrderSeq + Math.floor(random() * 2)) % TABLE_LABELS.length];
     const order = {
       id: nextOrderSeq,
       ticketNo: nextOrderSeq,
       tableLabel,
+      isVip,
       recipeId: recipe.id,
       timeLeft: patience,
       maxTime: patience,
@@ -269,7 +276,7 @@ export function createKitchenState(random) {
     });
   }
 
-  function step(dt, moveDir = 0, particles = null, audio = null) {
+  function step(dt, moveDir = 0, particles = null, audio = null, dash = false) {
     state.elapsed += dt;
     if (state.shakeTimer > 0) {
       state.shakeTimer = Math.max(0, state.shakeTimer - dt);
@@ -285,11 +292,12 @@ export function createKitchenState(random) {
 
     // Chef horizontal movement via keyboard direction OR click target
     const chef = state.chef;
+    const speedMult = dash ? CHEF_CONFIG.dashMultiplier : 1;
     if (moveDir !== 0) {
       chef.facing = moveDir;
-      chef.x = Math.min(CHEF_CONFIG.maxX, Math.max(CHEF_CONFIG.minX, chef.x + moveDir * CHEF_CONFIG.speed * dt));
+      chef.x = Math.min(CHEF_CONFIG.maxX, Math.max(CHEF_CONFIG.minX, chef.x + moveDir * CHEF_CONFIG.speed * speedMult * dt));
       chef.targetX = chef.x;
-      chef.walkPhase += dt * 13;
+      chef.walkPhase += dt * 13 * speedMult;
     } else if (Math.abs(chef.targetX - chef.x) > 4) {
       const dir = Math.sign(chef.targetX - chef.x);
       chef.facing = dir;

@@ -1,6 +1,6 @@
 // Deterministic screenshot staging (?shot=cover|assembly|rush|serve&seed=N)
 // Plays real game rules and kitchen routing forward with a chef autopilot so every
-// screenshot is a genuine live render of Lantern & Ladle at full readability.
+// screenshot is a genuine live render of Sesame & Flame at peak clarity.
 
 import { STEP } from './config.js';
 import { ITEM_METADATA, RECIPE_BY_ID, matchingRecipesForParts } from './recipes.js';
@@ -33,7 +33,6 @@ function runChefAutopilot(world, particles) {
   const { chop, kettle, wok, plate, pass } = state.stations;
   const held = state.chef.heldItem;
 
-  // 1. Serve any dish already waiting on the Pass Window!
   for (const order of state.orders) {
     if (pass.slots.some((s) => s && s.recipeId === order.recipeId)) {
       interactServicePass(world, particles, null, order.id);
@@ -41,25 +40,21 @@ function runChefAutopilot(world, particles) {
     }
   }
 
-  // 2. If dish is completed on Assembly Board, slide it to Pass!
   if (plate.completedRecipeId && !held) {
     interactAssemblyBoard(world, particles, null);
     return;
   }
 
-  // 3. If holding a finished dish, set on Pass.
   if (held && held.startsWith('dish:')) {
     interactServicePass(world, particles, null);
     return;
   }
 
-  // 4. Dump burnt trash if holding it.
   if (held === 'burnt_ash') {
     interactWashSink(world, particles, null);
     return;
   }
 
-  // 5. Pick up ready cooked items before they burn!
   if (!held && (wok.status === 'perfect' || wok.status === 'burning' || wok.status === 'burnt')) {
     interactWok(world, particles, null);
     return;
@@ -69,13 +64,11 @@ function runChefAutopilot(world, particles) {
     return;
   }
 
-  // 6. Toss Wok once when searing for Wok Hei speed & bonus.
   if (wok.status === 'searing' && wok.tossesUsed === 0 && wok.elapsed > 0.7) {
     interactWok(world, particles, null);
     return;
   }
 
-  // 7. Chop anything sitting on the Chop Block.
   if (chop.item && ITEM_METADATA[chop.item]?.stage === 'raw') {
     interactChopBlock(world, particles, null);
     return;
@@ -85,7 +78,6 @@ function runChefAutopilot(world, particles) {
     return;
   }
 
-  // 8. Route held item to its destination station.
   if (held) {
     const meta = ITEM_METADATA[held];
     if (meta?.nextStation === 'chop' && !chop.item) {
@@ -108,7 +100,6 @@ function runChefAutopilot(world, particles) {
     }
   }
 
-  // 9. Determine best target order matching current plate.
   const candidates = matchingRecipesForParts(plate.parts);
   const targetOrder =
     state.orders.find((o) => candidates.some((c) => c.id === o.recipeId)) ?? state.orders[0];
@@ -167,7 +158,6 @@ export function stageShot(shotName, world, particles) {
   particles.clear();
 
   if (shotName === 'assembly') {
-    // Rich action shot: Wok flaring with shrimp, Pork being sliced, Tofu Ochazuke mid-assembly!
     advanceSimulation(world, particles, 26, true);
     ensureTicketCount(world, 4);
     particles.clear();
@@ -186,6 +176,7 @@ export function stageShot(shotName, world, particles) {
     interactWok(world, particles, null);
     stations.plate.completedRecipeId = null;
     stations.plate.parts = ['steamed_rice', 'simmered_broth', 'crispy_tofu'];
+    stations.hold.item = 'chopped_bokchoy';
     world.state.chef.heldItem = 'egg';
     world.state.chef.x = 609;
     world.state.chef.targetX = 609;
@@ -195,7 +186,7 @@ export function stageShot(shotName, world, particles) {
   }
 
   if (shotName === 'rush') {
-    // Shift 2 Dinner Rush: 5 busy orders on rail (with urgent bar!), upgrades bought, fast combo!
+    // Shift 2 Lantern Rush: 5 busy orders (incl. VIP Critic!), both Pass trays loaded, intense cooking!
     advanceSimulation(world, particles, 96, true);
     if (world.state.screen === SCREEN_UPGRADE) {
       buyUpgrade(world, 'cleaver', null);
@@ -203,9 +194,15 @@ export function stageShot(shotName, world, particles) {
       world.startShift(1);
     }
     advanceSimulation(world, particles, 22, true);
+    particles.clear();
     ensureTicketCount(world, 5);
-    if (world.state.orders[0]) world.state.orders[0].timeLeft = 9;
-    if (world.state.orders[2]) world.state.orders[2].timeLeft = 17;
+    const rushIds = ['surf_and_turf_don', 'ginger_shrimp_ramen', 'golden_ochazuke', 'charcoal_pork_mazemen', 'jade_tofu_ramen'];
+    world.state.orders.forEach((o, i) => {
+      o.recipeId = rushIds[i % rushIds.length];
+      o.isVip = i === 1;
+      o.tableLabel = o.isVip ? 'VIP CRITIC' : `Booth ${i + 1}`;
+      o.timeLeft = [9, 32, 16, 38, 28][i % 5];
+    });
     const { stations } = world.state;
     stations.kettle.item = 'broth';
     stations.kettle.elapsed = 1.9;
@@ -215,13 +212,18 @@ export function stageShot(shotName, world, particles) {
     stations.wok.status = 'searing';
     stations.plate.completedRecipeId = null;
     stations.plate.parts = ['boiled_noodles', 'seared_shrimp', 'chopped_bokchoy'];
-    stations.pass.slots[0] = { recipeId: world.state.orders[1]?.recipeId ?? 'jade_tofu_ramen' };
-    advanceSimulation(world, particles, 0.1, false);
+    stations.pass.slots = [{ recipeId: 'ginger_shrimp_ramen' }, { recipeId: 'charcoal_pork_mazemen' }];
+    stations.hold.item = 'chopped_tofu';
+    world.state.chef.heldItem = 'egg';
+    world.state.chef.x = 1106;
+    world.state.chef.targetX = 1106;
+    world.state.chef.hintTimer = 0;
+    advanceSimulation(world, particles, 0.08, false);
     return;
   }
 
   if (shotName === 'serve') {
-    // Between-shift Kitchen Upgrade Shop over the live kitchen showing progression & depth!
+    // Shift 1 Complete: Kitchen Upgrade Bench + 10-Recipe Menu Unlock showcase!
     advanceSimulation(world, particles, 96, true);
     if (world.state.screen === SCREEN_UPGRADE) {
       buyUpgrade(world, 'cleaver', null);
@@ -229,51 +231,46 @@ export function stageShot(shotName, world, particles) {
     return;
   }
 
-  // Default: 'cover' — Showcase all 6 Criterion 1 elements with zero overlap!
+  // Default: 'cover' — Showcase EVERY Criterion 1 & 2 highlight clearly with zero clutter!
   advanceSimulation(world, particles, 19, true);
   particles.clear();
   ensureTicketCount(world, 4);
 
   const { stations, orders } = world.state;
-  // Make sure the 4 tickets span distinct appetizing recipes with varied timers
-  const distinctIds = ['velvet_miso_ramen', 'dragon_shrimp_noodles', 'jade_tofu_ramen', 'midnight_chashu_don'];
+  const distinctIds = ['velvet_miso_ramen', 'dragon_shrimp_noodles', 'jade_tofu_ramen', 'surf_and_turf_don'];
   orders.forEach((o, i) => {
     o.recipeId = distinctIds[i % distinctIds.length];
-    o.timeLeft = Math.max(12, o.maxTime * [0.82, 0.64, 0.45, 0.24][i % 4]);
+    o.isVip = i === 1;
+    o.tableLabel = o.isVip ? 'VIP CRITIC' : ['Booth 3', 'VIP CRITIC', 'Lantern 5', 'Bar 2'][i % 4];
+    o.timeLeft = Math.max(11, o.maxTime * [0.82, 0.66, 0.44, 0.24][i % 4]);
   });
 
-  // 1) Chop Block: Pork mid-chop (2/3)
   stations.chop.item = 'pork';
   stations.chop.hits = 2;
   stations.chop.hitsRequired = 3;
 
-  // 2) Broth Kettle: Miso Broth simmering (68%)
   stations.kettle.item = 'broth';
   stations.kettle.elapsed = 1.9;
   stations.kettle.status = 'cooking';
 
-  // 3) Ember Wok: Tiger Shrimp sizzling with flame!
   stations.wok.item = 'chopped_shrimp';
   stations.wok.elapsed = 1.7;
   stations.wok.tossesUsed = 1;
   stations.wok.status = 'searing';
   stations.wok.flareTimer = 0.18;
 
-  // 4) Assembly Board: Velvet Miso Ramen MID-ASSEMBLY (3/4 parts!)
   stations.plate.completedRecipeId = null;
   stations.plate.parts = ['boiled_noodles', 'simmered_broth', 'seared_pork'];
 
-  // 5) Service Pass: Completed Dragon Shrimp Mazemen plate READY TO SERVE!
   stations.pass.slots = [{ recipeId: 'dragon_shrimp_noodles' }, null];
+  stations.hold.item = 'chopped_bokchoy';
 
-  // Chef Pip holding the final Ajitama Egg right below Assembly Board
   world.state.chef.heldItem = 'egg';
   world.state.chef.x = 859;
   world.state.chef.targetX = 859;
   world.state.chef.facing = 1;
-  world.state.chef.hintText = 'Add Egg [Space] to finish Miso Ramen — or ring Pass Bell [Enter] to serve!';
+  world.state.chef.hintText = 'Add Egg [Space] to finish Miso Ramen — or ring Pass Bell [Enter] for VIP Critic!';
   world.state.chef.hintTimer = 5;
 
-  // Tick physics only (no autopilot!) to spawn fresh ambient steam wisps cleanly
-  advanceSimulation(world, particles, 0.16, false);
+  advanceSimulation(world, particles, 0.14, false);
 }

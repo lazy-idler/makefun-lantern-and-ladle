@@ -51,28 +51,43 @@ export function drawKitchenBackdrop(ctx, time) {
     roundRect(ctx, wx + 6 + i * 39, wy + 3, 35, 22, [0, 0, 5, 5]);
     ctx.fill();
   }
-  // Happy seated night diner silhouettes at the ramen bar
+  // Happy seated night diner silhouettes with steaming bowls at the counter
   for (const [dx, hatColor] of [[wx + 66, '#e6b450'], [wx + 172, '#8ab4f8']]) {
-    // Shoulders
     ctx.fillStyle = '#2e1d16';
     ctx.beginPath();
     ctx.ellipse(dx, wy + 114, 28, 22, 0, Math.PI, 0);
     ctx.fill();
-    // Head
     ctx.fillStyle = '#4a2f22';
     ctx.beginPath();
-    ctx.arc(dx, wy + 82, 16, 0, Math.PI * 2);
+    ctx.arc(dx, wy + 80, 15, 0, Math.PI * 2);
     ctx.fill();
-    // Warm pendant glow / chopsticks accent
+    // Cozy steaming counter bowl in front of patron
+    ctx.fillStyle = '#f5e8cf';
+    ctx.beginPath();
+    ctx.arc(dx + 22, wy + 109, 9, 0, Math.PI);
+    ctx.fill();
     ctx.fillStyle = hatColor;
     ctx.beginPath();
-    ctx.arc(dx, wy + 68, 4, 0, Math.PI * 2);
+    ctx.arc(dx, wy + 66, 3.5, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.fillStyle = 'rgba(255, 232, 184, 0.85)';
   ctx.font = `800 11px ${FONT_UI}`;
   ctx.textAlign = 'center';
   ctx.fillText('NIGHT DINING COUNTER', wx + ww / 2, wy + 44);
+
+  // Brushed copper & iron range hood canopy over Broth Kettle & Ember Wok
+  ctx.fillStyle = '#232832';
+  roundRect(ctx, 266, 174, 452, 26, 5);
+  ctx.fill();
+  ctx.fillStyle = PALETTE.brass;
+  ctx.fillRect(266, 198, 452, 3);
+  // Subtle warm task glow falling from range hood onto stove line
+  const hoodGlow = ctx.createLinearGradient(0, 200, 0, 314);
+  hoodGlow.addColorStop(0, 'rgba(255, 212, 138, 0.16)');
+  hoodGlow.addColorStop(1, 'rgba(255, 212, 138, 0)');
+  ctx.fillStyle = hoodGlow;
+  ctx.fillRect(266, 200, 452, 114);
 
   // Oak spice & utensil shelf along wall (left-center)
   ctx.fillStyle = '#6c4128';
@@ -150,22 +165,31 @@ export function drawKitchenBackdrop(ctx, time) {
     ctx.fillStyle = glow;
     ctx.fillRect(lx - 180, 170, 360, 220);
 
-    // Lantern body
+    // Lantern body with brass caps and crimson tassel
     ctx.strokeStyle = '#261a14';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(lx, 176);
-    ctx.lineTo(lx, 190);
+    ctx.moveTo(lx, 174);
+    ctx.lineTo(lx, 188);
     ctx.stroke();
 
     ctx.fillStyle = '#f28b30';
     ctx.beginPath();
-    ctx.ellipse(lx, 206, 17, 15, 0, 0, Math.PI * 2);
+    ctx.ellipse(lx, 204, 17, 15, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffe596';
     ctx.beginPath();
-    ctx.ellipse(lx, 206, 9, 10, 0, 0, Math.PI * 2);
+    ctx.ellipse(lx, 204, 9, 10, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = '#2a1b14';
+    ctx.fillRect(lx - 9, 188, 18, 3);
+    ctx.fillRect(lx - 9, 217, 18, 3);
+    ctx.strokeStyle = '#d9483b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(lx, 220);
+    ctx.lineTo(lx, 231);
+    ctx.stroke();
   }
 
   // Main warm hardwood kitchen counter band & floor aisle
@@ -219,7 +243,7 @@ export function drawTicketRail(ctx, state, hoveredOrderId, time) {
       ctx.shadowBlur = 10 + Math.sin(time * 10) * 4;
     }
 
-    ctx.fillStyle = PALETTE.ticketPaper;
+    ctx.fillStyle = order.isVip ? '#fff8e2' : PALETTE.ticketPaper;
     roundRect(ctx, x, y, w, h, 8);
     ctx.fill();
     ctx.restore();
@@ -230,8 +254,10 @@ export function drawTicketRail(ctx, state, hoveredOrderId, time) {
       ? PALETTE.brassBright
       : isUrgent
       ? PALETTE.ticketUrgent
+      : order.isVip
+      ? PALETTE.brass
       : '#b8a992';
-    ctx.lineWidth = isReadyOnPass || isHover ? 2.5 : 1.5;
+    ctx.lineWidth = isReadyOnPass || isHover || order.isVip ? 2.5 : 1.5;
     roundRect(ctx, x, y, w, h, 8);
     ctx.stroke();
 
@@ -240,19 +266,19 @@ export function drawTicketRail(ctx, state, hoveredOrderId, time) {
     roundRect(ctx, x + w / 2 - 14, y - 5, 28, 9, 3);
     ctx.fill();
 
-    // Ticket header bar
-    ctx.fillStyle = isReadyOnPass ? '#1d593a' : PALETTE.ticketHeader;
+    // Ticket header bar (Gold-crimson VIP Critic vs Ready vs Standard)
+    ctx.fillStyle = isReadyOnPass ? '#1d593a' : order.isVip ? '#6b221a' : PALETTE.ticketHeader;
     roundRect(ctx, x, y, w, 25, [8, 8, 0, 0]);
     ctx.fill();
 
     ctx.font = `800 12px ${FONT_UI}`;
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#ffd773';
+    ctx.fillStyle = order.isVip ? '#ffe382' : '#ffd773';
     ctx.fillText(`#${order.ticketNo} · ${order.tableLabel}`, x + 8, y + 17);
 
     ctx.textAlign = 'right';
-    ctx.fillStyle = isReadyOnPass ? '#8effc1' : '#f7e7ce';
-    ctx.fillText(isReadyOnPass ? 'SERVE!' : `$${recipe.basePay}+`, x + w - 8, y + 17);
+    ctx.fillStyle = isReadyOnPass ? '#8effc1' : order.isVip ? '#ffe89c' : '#f7e7ce';
+    ctx.fillText(isReadyOnPass ? 'SERVE!' : order.isVip ? `$${recipe.basePay + 18}+` : `$${recipe.basePay}+`, x + w - 8, y + 17);
 
     // Dish icon & Title
     drawDishBowl(ctx, recipe.id, x + 28, y + 54, 19);
@@ -752,7 +778,35 @@ export function drawStations(ctx, state, hoveredStation, time) {
     ctx.fillText(pass.slots.some(Boolean) ? 'RING BELL [Enter] TO SERVE!' : 'SET PLATED DISHES HERE', st.x + st.w / 2, st.y + 137);
   }
 
-  // 6. WASH SINK / TRASH
+  // 6. SIDE PREP HOLD TRAY [Q]
+  {
+    const st = STATIONS.hold;
+    const { hold } = state.stations;
+    const isHover = hoveredStation === st.id;
+    ctx.fillStyle = isHover ? '#4d3b2c' : '#332821';
+    roundRect(ctx, st.x, st.y, st.w, st.h, 8);
+    ctx.fill();
+    ctx.strokeStyle = isHover ? PALETTE.brassBright : hold.item ? PALETTE.brass : '#574337';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#211915';
+    roundRect(ctx, st.x + 7, st.y + 7, 38, 38, 6);
+    ctx.fill();
+    if (hold.item) {
+      drawIngredientIcon(ctx, hold.item, st.x + 26, st.y + 26, 0.8);
+    }
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffe5b4';
+    ctx.font = `800 11px ${FONT_UI}`;
+    ctx.fillText('TRAY [Q]', st.x + 51, st.y + 24);
+    ctx.fillStyle = '#b9a696';
+    ctx.font = `600 10px ${FONT_UI}`;
+    ctx.fillText(hold.item ? 'Swap/Use' : 'Hold Item', st.x + 51, st.y + 40);
+  }
+
+  // 7. WASH SINK / TRASH
   {
     const st = STATIONS.trash;
     const isHover = hoveredStation === st.id;

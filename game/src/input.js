@@ -13,6 +13,7 @@ function inRect(x, y, r) {
 export function createInputController(canvas, renderer) {
   let left = false;
   let right = false;
+  let dashing = false;
   const queuedEvents = [];
   const hoverState = {
     hoveredStation: null,
@@ -28,12 +29,12 @@ export function createInputController(canvas, renderer) {
     hoverState.hoveredUpgradeId = null;
 
     if (state.screen === SCREEN_UPGRADE) {
-      const boxX = (FIELD.width - 880) / 2;
-      const boxY = 136;
+      const boxX = (FIELD.width - 920) / 2;
+      const boxY = 96;
       for (let i = 0; i < UPGRADE_CATALOG.length; i += 1) {
-        const ux = boxX + 30 + (i % 2) * 416;
-        const uy = boxY + 104 + Math.floor(i / 2) * 116;
-        if (inRect(wx, wy, { x: ux, y: uy, w: 398, h: 98 })) {
+        const ux = boxX + 34 + (i % 2) * 432;
+        const uy = boxY + 96 + Math.floor(i / 2) * 108;
+        if (inRect(wx, wy, { x: ux, y: uy, w: 420, h: 94 })) {
           hoverState.hoveredUpgradeId = UPGRADE_CATALOG[i].id;
           return;
         }
@@ -41,7 +42,7 @@ export function createInputController(canvas, renderer) {
       return;
     }
 
-    for (const key of ['chop', 'kettle', 'wok', 'plate', 'pass', 'trash']) {
+    for (const key of ['chop', 'kettle', 'wok', 'plate', 'pass', 'hold', 'trash']) {
       if (inRect(wx, wy, STATIONS[key])) {
         hoverState.hoveredStation = key;
         return;
@@ -76,6 +77,10 @@ export function createInputController(canvas, renderer) {
       event.preventDefault();
       return;
     }
+    if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+      dashing = true;
+      return;
+    }
     if (event.repeat) return;
 
     const code = event.code;
@@ -87,6 +92,8 @@ export function createInputController(canvas, renderer) {
       queuedEvents.push({ type: 'station', station: 'kettle' });
     } else if (code === 'KeyF') {
       queuedEvents.push({ type: 'station', station: 'wok' });
+    } else if (code === 'KeyQ') {
+      queuedEvents.push({ type: 'station', station: 'hold' });
     } else if (code === 'Space') {
       queuedEvents.push({ type: 'space' });
     } else if (code === 'Enter') {
@@ -110,11 +117,13 @@ export function createInputController(canvas, renderer) {
   window.addEventListener('keyup', (event) => {
     if (event.code === 'ArrowLeft' || event.code === 'KeyA') left = false;
     else if (event.code === 'ArrowRight' || event.code === 'KeyD') right = false;
+    else if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') dashing = false;
   });
 
   window.addEventListener('blur', () => {
     left = false;
     right = false;
+    dashing = false;
   });
 
   canvas.addEventListener('pointermove', (event) => {
@@ -138,16 +147,16 @@ export function createInputController(canvas, renderer) {
     }
 
     if (state.screen === SCREEN_UPGRADE) {
-      const boxX = (FIELD.width - 880) / 2;
-      const boxY = 136;
+      const boxX = (FIELD.width - 920) / 2;
+      const boxY = 96;
       for (let i = 0; i < UPGRADE_CATALOG.length; i += 1) {
-        const ux = boxX + 30 + (i % 2) * 416;
-        const uy = boxY + 104 + Math.floor(i / 2) * 116;
-        if (inRect(wx, wy, { x: ux, y: uy, w: 398, h: 98 })) {
+        const ux = boxX + 34 + (i % 2) * 432;
+        const uy = boxY + 96 + Math.floor(i / 2) * 108;
+        if (inRect(wx, wy, { x: ux, y: uy, w: 420, h: 94 })) {
           return { type: 'upgrade', id: UPGRADE_CATALOG[i].id };
         }
       }
-      if (inRect(wx, wy, { x: FIELD.width / 2 - 170, y: boxY + 365, w: 340, h: 56 })) {
+      if (inRect(wx, wy, { x: FIELD.width / 2 - 175, y: boxY + 465, w: 350, h: 60 })) {
         return { type: 'confirm' };
       }
       return null;
@@ -162,7 +171,7 @@ export function createInputController(canvas, renderer) {
       }
     }
 
-    for (const key of ['chop', 'kettle', 'wok', 'plate', 'pass', 'trash']) {
+    for (const key of ['chop', 'kettle', 'wok', 'plate', 'pass', 'hold', 'trash']) {
       if (inRect(wx, wy, STATIONS[key])) {
         return { type: 'station', station: key };
       }
@@ -181,6 +190,9 @@ export function createInputController(canvas, renderer) {
   return {
     direction() {
       return (right ? 1 : 0) - (left ? 1 : 0);
+    },
+    isDashing() {
+      return dashing;
     },
     takeEvents(state) {
       const list = queuedEvents.splice(0, queuedEvents.length);

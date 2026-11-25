@@ -377,8 +377,10 @@ export function interactServicePass(world, particles, audio, preferredOrderId = 
   state.servedCount += 1;
 
   const patienceRatio = Math.max(0, order.timeLeft / order.maxTime);
-  const speedTip = Math.round(recipe.tipBonus * (0.4 + 0.8 * patienceRatio)) + (state.upgrades.heatlamp ? 6 : 0);
-  const comboMult = 1 + Math.min(state.combo - 1, 4) * 0.2;
+  const baseSpeedTip = Math.round(recipe.tipBonus * (0.4 + 0.8 * patienceRatio)) + (state.upgrades.heatlamp ? 8 : 0);
+  const vipBonus = order.isVip ? 18 : 0;
+  const speedTip = baseSpeedTip + vipBonus;
+  const comboMult = 1 + Math.min(state.combo - 1, 4) * 0.16;
   const payout = Math.round((recipe.basePay + speedTip) * comboMult);
 
   state.score += payout;
@@ -389,10 +391,34 @@ export function interactServicePass(world, particles, audio, preferredOrderId = 
   const passCenter = stationCenter(STATIONS.pass);
   particles?.emitServeBurst(passCenter.x, passCenter.y + 14, Math.random);
   const comboLabel = state.combo >= 2 ? ` (${state.combo}x COMBO!)` : '';
-  particles?.spawnCallout(`SERVED #${order.ticketNo} +$${payout}${comboLabel}`, passCenter.x - 10, STATIONS.pass.y - 16, '#4cd98c', 1.1);
+  const vipPrefix = order.isVip ? 'VIP CRITIC ' : '';
+  particles?.spawnCallout(`${vipPrefix}SERVED #${order.ticketNo} +$${payout}${comboLabel}`, passCenter.x - 10, STATIONS.pass.y - 16, order.isVip ? '#ffd773' : '#4cd98c', 1.1);
   world.triggerShake(4.5, 0.18);
-  world.setHint(`Served ${recipe.name}! +$${payout}${comboLabel}`);
+  world.setHint(`Served ${vipPrefix}${recipe.name}! +$${payout}${comboLabel}`);
   audio?.playServeBell(state.combo);
+  return true;
+}
+
+export function interactSideTray(world, particles, audio) {
+  const { state } = world;
+  const { hold } = state.stations;
+  const held = state.chef.heldItem;
+  state.chef.targetX = STATIONS.hold.interactX;
+  state.chef.lastStation = 'hold';
+
+  if (!held && !hold.item) {
+    world.setHint('Side Tray holds 1 prepped item while you cook something else [Q].');
+    return false;
+  }
+
+  state.chef.heldItem = hold.item;
+  hold.item = held;
+  audio?.playPickup();
+  if (hold.item) {
+    world.setHint(`Staged ${ITEM_METADATA[hold.item]?.label ?? 'Dish'} on Side Tray [Q].`);
+  } else {
+    world.setHint(`Picked up ${ITEM_METADATA[state.chef.heldItem]?.label ?? 'Dish'} from Side Tray.`);
+  }
   return true;
 }
 

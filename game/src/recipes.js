@@ -1,6 +1,6 @@
-// Pantry ingredients, station transformation rules, and original bistro recipes
-// for Lantern & Ladle. Every ingredient takes part in multiple recipes so cooks
-// can overlap kettle simmering, knife prep, and wok searing during a service rush.
+// Pantry ingredients, station transformation rules, and 10 combinable signature
+// recipes for Sesame & Flame. Every ingredient participates across multiple dishes
+// so cooks can chain parallel kettle boils, knife prep, and wok sears efficiently.
 
 export const INGREDIENTS = [
   {
@@ -199,6 +199,46 @@ export const RECIPES = [
     tipBonus: 11,
     parts: ['steamed_rice', 'simmered_broth', 'crispy_tofu', 'soft_egg'],
     accent: '#f0b849',
+  },
+  {
+    id: 'charcoal_pork_mazemen',
+    name: 'Charcoal Pork Mazemen',
+    shortName: 'Pork Mazemen',
+    bowlStyle: 'ramen',
+    basePay: 34,
+    tipBonus: 11,
+    parts: ['boiled_noodles', 'seared_pork', 'chopped_bokchoy', 'soft_egg'],
+    accent: '#d66048',
+  },
+  {
+    id: 'surf_and_turf_don',
+    name: 'Sizzling Surf & Turf Don',
+    shortName: 'Surf & Turf Don',
+    bowlStyle: 'donburi',
+    basePay: 40,
+    tipBonus: 14,
+    parts: ['steamed_rice', 'seared_pork', 'seared_shrimp', 'chopped_bokchoy'],
+    accent: '#eb7a44',
+  },
+  {
+    id: 'ginger_shrimp_ramen',
+    name: 'Ginger Shrimp Broth Ramen',
+    shortName: 'Shrimp Ramen',
+    bowlStyle: 'ramen',
+    basePay: 36,
+    tipBonus: 12,
+    parts: ['boiled_noodles', 'simmered_broth', 'seared_shrimp', 'soft_egg'],
+    accent: '#ff8a5c',
+  },
+  {
+    id: 'harmony_tofu_bowl',
+    name: 'Harmony Tofu Rice Bowl',
+    shortName: 'Tofu Rice Bowl',
+    bowlStyle: 'donburi',
+    basePay: 32,
+    tipBonus: 10,
+    parts: ['steamed_rice', 'crispy_tofu', 'chopped_bokchoy', 'soft_egg'],
+    accent: '#7cd48e',
   },
 ];
 

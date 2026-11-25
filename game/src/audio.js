@@ -1,6 +1,5 @@
-// Procedural Web Audio API sound effects for Lantern & Ladle.
-// Generates knife chops, wok sizzle, simmering plops, brass service bell,
-// and celebratory combo chimes offline with zero external audio assets.
+// Procedural Web Audio API sound effects and warm pentatonic bistro groove
+// for Sesame & Flame, generated offline with zero external audio files.
 
 export function createAudioEngine() {
   let ctx = null;
